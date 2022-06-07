@@ -1,70 +1,112 @@
-# Getting Started with Create React App
+# Redux Toolkit Starter
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+```js
 
-## Available Scripts
+npm install @reduxjs/toolkit react-redux
 
-In the project directory, you can run:
+```
 
-### `npm start`
+## setup store
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- create store.js
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```js
+import { configureStore } from '@reduxjs/toolkit';
 
-### `npm test`
+export const store = configureStore({
+  reducer: {},
+});
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- add Provider index.js
 
-### `npm run build`
+```js
+import {store} from "store"
+import {Provider} from "react-redux"
+<Provider store={store}>
+<App/>
+<Provider>
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Slice
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+-create slice.js
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```js
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+const url = 'sdfklsdf';
+export const getFetchData = createAsyncThunk('path', () => {
+  return fetch(url)
+    .then(res => res.json())
+    .catch(err => console.log(err));
+});
+export const getAxiosData =createAsyncThunk("path",async (_,thunkApi)=>{
+    try{
+        console.log(thunkApi.getState());
+        const resp = await axios(url);
+        return resp
+    }catch(error){
+        return thunkApi.rejectWithValue("error")
+    }
+})
+const initState = {
+  x: [],
+  y: 0,
+  z: false,
+};
+const initSlice = createSlice({
+  name: 'init',
+  initState,
+  reducers: {
+    mthd: state => {
+      state.a = ['a'];
+      //   return { ...state, a: [] };
+    },
+    mthd2: (state, action) => {
+      let val = action.payload;
+      state.b = state.b.someMethod(i => i.xyx === val);
+    },
+  },
+  extraReducers:{
+      [getFetchData.pending]:state=>{
+          state.z = true
+      },
+      [getFetchData.fullfilled]:(state,action)=>{
+          state.z = false
+          state.x = action.payload
+      },
+      [getFetchData.rejected]:state=>{
+          state.z? false
+      }
+  }
+});
+export const { mthd } = initSlice.actions;
+export default initSlice.reducer;
+```
 
-### `npm run eject`
+- useSelector add a component
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```js
+import { useSelector, useDispatch } from 'react-reduc';
+import {mthd,mthd2,getFetchData} from "./src/Sampleslice";
+const dispatch = useDispatch();
+const { x, y, z } = useSelector(state => state.init);
+useEffect(()=>{
+    dispatch(getFetchData())
+},[])
+<button
+  onClick={() => {
+    dispatch(mthd());
+  }}
+>
+  sample
+</button>
+<button
+  onClick={() => {
+    dispatch(mthd2(param));
+  }}
+>
+  sample2
+</button>;;
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```
